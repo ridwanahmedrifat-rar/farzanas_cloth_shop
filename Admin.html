@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farzana's Cloth Shop - Admin</title>
+<style>
+body{margin:0;font-family:Arial;background:#fff8f5;color:#292323}
+header{background:#7b2447;color:white;padding:20px;text-align:center}
+main{max-width:900px;margin:20px auto;padding:15px}
+.box{background:white;padding:20px;margin:15px 0;border-radius:10px;box-shadow:0 2px 8px #ddd}
+input{display:block;width:95%;max-width:450px;padding:12px;margin:10px 0;border:1px solid #ccc;border-radius:5px}
+button{background:#9c315d;color:white;border:0;padding:10px 15px;border-radius:5px;cursor:pointer;margin:4px}
+.delete{background:#c0392b}
+.item{padding:12px;border-bottom:1px solid #ddd}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Farzana's Cloth Shop</h1>
+<p>Admin Dashboard</p>
+</header>
+
+<main>
+<div class="box" id="loginBox">
+<h2>Admin Login</h2>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="error" style="color:red"></p>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="box">
+<h2>Dashboard</h2>
+<p id="productCount"></p>
+<p id="orderCount"></p>
+<button onclick="logout()">Logout</button>
+<a href="index.html"> <button>View Website</button></a>
+</div>
+
+<div class="box">
+<h2>Add New Product</h2>
+<input id="pname" placeholder="Product Name">
+<input id="pprice" type="number" placeholder="Price">
+<input id="pimage" placeholder="Image URL">
+<button onclick="addProduct()">Add Product</button>
+</div>
+
+<div class="box">
+<h2>Manage Products</h2>
+<div id="products"></div>
+</div>
+
+<div class="box">
+<h2>Customer Orders</h2>
+<div id="orders"></div>
+</div>
+</div>
+</main>
+
+<script>
+const starterProducts=[
+ {id:1,name:"Beautiful Saree",price:1200,image:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500"},
+ {id:2,name:"Ladies Dress",price:850,image:"https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500"},
+ {id:3,name:"Fashion Kurti",price:650,image:"https://images.unsplash.com/photo-1583391733956-6c78276477e4?w=500"}
+];
+
+function getProducts(){
+ let saved=localStorage.getItem("farzanaProducts");
+ if(!saved){
+  localStorage.setItem("farzanaProducts",JSON.stringify(starterProducts));
+  return starterProducts;
+ }
+ return JSON.parse(saved);
+}
+
+function login(){
+ const u=document.getElementById("username").value;
+ const p=document.getElementById("password").value;
+
+ if(u==="admin" && p==="admin123"){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  loadDashboard();
+ }else{
+  document.getElementById("error").innerText="Wrong username or password!";
+ }
+}
+
+function logout(){
+ document.getElementById("dashboard").classList.add("hidden");
+ document.getElementById("loginBox").classList.remove("hidden");
+}
+
+function addProduct(){
+ const name=document.getElementById("pname").value.trim();
+ const price=Number(document.getElementById("pprice").value);
+ const image=document.getElementById("pimage").value.trim();
+
+ if(!name||price<=0||!image){
+  alert("Please enter valid product details.");
+  return;
+ }
+
+ const products=getProducts();
+ products.push({id:Date.now(),name,price,image});
+ localStorage.setItem("farzanaProducts",JSON.stringify(products));
+
+ document.getElementById("pname").value="";
+ document.getElementById("pprice").value="";
+ document.getElementById("pimage").value="";
+ loadDashboard();
+}
+
+function deleteProduct(id){
+ if(!confirm("Delete this product?"))return;
+ const products=getProducts().filter(p=>p.id!==id);
+ localStorage.setItem("farzanaProducts",JSON.stringify(products));
+ loadDashboard();
+}
+
+function loadDashboard(){
+ const products=getProducts();
+ const orders=JSON.parse(localStorage.getItem("farzanaOrders")||"[]");
+
+ document.getElementById("productCount").innerText="Total Products: "+products.length;
+ document.getElementById("orderCount").innerText="Total Orders: "+orders.length;
+
+ document.getElementById("products").innerHTML=products.map(p=>`
+  <div class="item">
+   <b>${p.name}</b> — ৳${p.price}
+   <button class="delete" onclick="deleteProduct(${p.id})">Delete</button>
+  </div>
+ `).join("")||"No products yet.";
+
+ document.getElementById("orders").innerHTML=orders.map(o=>`
+  <div class="item">
+   <b>${o.name}</b><br>
+   Phone: ${o.phone}<br>
+   Address: ${o.address}<br>
+   Products: ${o.items.map(i=>i.name).join(", ")}<br>
+   Total: ৳${o.total}<br>
+   Date: ${o.date}
+  </div>
+ `).join("")||"No orders yet.";
+}
+</script>
+</body>
+  </html>
